@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     // Supplier: Insert a new material into the materials table
 
     // Check if the material with the same details already exists
-    $sql1 = "SELECT * FROM materials WHERE material_standard = '$materialStandard' AND material_type = '$materialType' AND alloy = '$alloy' AND `type` = '$type' AND `form` = '$form' AND `condition` = '$condition'";
+    $sql1 = "SELECT * FROM materials WHERE material_standard = '$materialStandard' AND material_type = '$materialType' AND alloy = '$alloy' AND `type` = '$type' AND `form` = '$form' AND `condition` = '$condition' AND `supplier_id` = '$supplierId'";
     $checkSql1 = mysqli_query($conn, $sql1);
 
     if (mysqli_num_rows($checkSql1) > 0) {
