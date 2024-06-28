@@ -12,6 +12,10 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link"
+                        href="select-materials.php">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
                         href="profile.php?userType=<?php echo strtolower($_SESSION['userType']); ?>&userID=<?php echo $_SESSION['userId']; ?>">Profile</a>
                 </li>
                 <li class="nav-item">
