@@ -1,10 +1,16 @@
 <?php
 // db_conn.php
 session_start();
-$servername = "localhost"; // Update with your database server details
-$username = "root"; // Update with your database username
-$password = "root"; // Update with your database password
-$dbname = "material_harbour"; // Update with your database name
+$servername = "localhost";
+$username = "u956940883_materials";
+$password = "S;64NoYxc";
+$dbname = "u956940883_materials";
+
+
+// $servername = "localhost";
+// $username = "root";
+// $password = "root";
+// $dbname = "material_harbour";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
