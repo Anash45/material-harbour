@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 
     // SQL query to get all materials with their suppliers
     $sql = "SELECT m.*, s.company_name AS supplier_name
+    , s.id AS supplier_id
               FROM materials m
               JOIN suppliers s ON m.supplier_id = s.id WHERE m.material_standard = '$materialStandard' AND m.material_type = '$materialType' AND m.alloy = '$alloy' AND m.type = '$type' AND m.form = '$form' AND m.condition = '$condition'";
 
@@ -45,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         $show .= "<td>" . htmlspecialchars($row['type']) . "</td>";
         $show .= "<td>" . htmlspecialchars($row['condition']) . "</td>";
         $show .= "<td>" . htmlspecialchars($row['form']) . "</td>";
-        $show .= "<td><a class='fw-bold text-primary' href='profile.php?userType=supplier&userID=" . $row['id'] . "'>" . htmlspecialchars($row['supplier_name']) . "</a></td>";
+        $show .= "<td><a class='fw-bold text-primary' href='profile.php?userType=supplier&userID=" . $row['supplier_id'] . "'>" . htmlspecialchars($row['supplier_name']) . "</a></td>";
         $show .= "</tr>";
       }
       $show .= "</tbody>";
