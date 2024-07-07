@@ -1,14 +1,14 @@
 <?php
 require './db_conn.php';
 
-if (!isLoggedIn()) {
-  header('Location: ./index.php');
-}
+// if (!isLoggedIn()) {
+//   header('Location: ./index.php');
+// }
 $show = $info = '';
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
   // Retrieve user type from the session
-  $userType = $_SESSION['userType'];
+  $userType = isset($_SESSION['userType']) ? $_SESSION['userType'] : 'Guest';
   // Sanitize and retrieve input data
   $materialStandard = isset($_POST['material_standard']) ? trim($_POST['material_standard']) : '';
   $materialType = isset($_POST['material_type']) ? trim($_POST['material_type']) : '';
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
   $form = isset($_POST['form']) ? trim($_POST['form']) : '';
   $supplierId = isset($_SESSION['userId']) ? $_SESSION['userId'] : '';
 
-  if (strtolower($userType) === 'manufacturer') {
+  if (strtolower($userType) === 'manufacturer' || strtolower($userType) === 'guest') {
     // Manufacturer: List all materials and corresponding suppliers
 
     // SQL query to get all materials with their suppliers
@@ -103,6 +103,8 @@ $conn->close();
         echo ' - To Supply';
       } elseif (isManufacturer()) {
         echo ' - To Manufacture';
+      }else{
+        echo ' - as Guest';
       }
       ?></h2>
       <?php echo $info; ?>

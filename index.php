@@ -20,8 +20,8 @@ if(isLoggedIn()){
             <h1 class="text-center mb-4">Welcome to Material Harbour</h1>
             <p class="text-center mb-4">Please choose your role to proceed:</p>
             <div class="row justify-content-center">
-                <div class="col-md-4 mb-3">
-                    <div class="card">
+            <div class="col-md-4 mb-3">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <h5 class="card-title">Manufacturer</h5>
                             <p class="card-text">Register as a Manufacturer to find materials and suppliers for your
@@ -30,13 +30,24 @@ if(isLoggedIn()){
                         </div>
                     </div>
                 </div>
+                
                 <div class="col-md-4 mb-3">
-                    <div class="card">
+                    <div class="card h-100">
                         <div class="card-body text-center">
                             <h5 class="card-title">Supplier</h5>
                             <p class="card-text">Register as a Supplier to offer your materials to potential
                                 manufacturers.</p>
-                            <a href="login.php?user=Supplier" class="btn btn-secondary">I am a Supplier</a>
+                            <a href="login.php?user=Supplier" class="btn btn-info">I am a Supplier</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Guest</h5>
+                            <p class="card-text">Explore materials as a Guest.</p>
+                            <a href="./select-materials.php" class="btn btn-secondary">I am a Guest</a>
                         </div>
                     </div>
                 </div>

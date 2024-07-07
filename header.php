@@ -8,16 +8,22 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <span class="nav-link text-dark">Hey <b><?php echo $_SESSION['companyName']; ?></b>!</span>
+                    <span class="nav-link text-dark">Hey
+                        <b><?php echo $user_type = (isset($_SESSION['companyName'])) ? $_SESSION['companyName'] : 'Guest'; ?></b>!</span>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link"
-                        href="select-materials.php">Home</a>
+                    <a class="nav-link" href="select-materials.php">Home</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link"
-                        href="profile.php?userType=<?php echo strtolower($_SESSION['userType']); ?>&userID=<?php echo $_SESSION['userId']; ?>">Profile</a>
-                </li>
+                <?php
+                if (isLoggedIn()) {
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="profile.php?userType=<?php echo strtolower($_SESSION['userType']); ?>&userID=<?php echo $_SESSION['userId']; ?>">Profile</a>
+                    </li>
+                    <?php
+                }
+                ?>
                 <li class="nav-item">
                     <a class="nav-link" href="logout.php">Logout</a>
                 </li>

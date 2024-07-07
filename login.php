@@ -8,6 +8,7 @@ if (isset($_GET['user'])) {
 } else {
     header("Location: index.php");
 }
+// print_r($_SESSION);
 $info = '';
 // Handle the sign-up form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
@@ -17,40 +18,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
     $phone = $_POST['signupPhone'];
     $offers = $_POST['signupOffers'];
     $description = $_POST['signupDescription'];
-    $password = password_hash($_POST['signupPassword'], PASSWORD_DEFAULT);
+    $password = $_POST['signupPassword'];
+    $confirmPassword = $_POST['signupConfirmPassword'];
 
-    $user = $_GET['user']; // Get the user type from the URL
+    if ($password === $confirmPassword) {
 
-    // Check if the email already exists in the appropriate table
-    if (strtolower($user) === 'manufacturer') {
-        $table = 'manufacturers';
-    } elseif (strtolower($user) === 'supplier') {
-        $table = 'suppliers';
-    }
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $user = $_GET['user']; // Get the user type from the URL
 
-    $emailCheckSql = "SELECT id FROM $table WHERE email = ?";
-    $stmt = $conn->prepare($emailCheckSql);
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows > 0) {
-        $info = "<div class='alert alert-danger'>Email already exists.</div>";
-    } else {
-        // Insert the new user into the appropriate table
-        $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-        $stmt = $conn->prepare($insertSql);
-        $stmt->bind_param('sssssss', $company, $location, $email, $phone, $offers, $description, $password);
-
-        if ($stmt->execute()) {
-            $info = "<div class='alert alert-success'>Sign-up successful!</div>";
-            // Redirect to a login or welcome page, or show a success message
-        } else {
-            $info = "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+        // Check if the email already exists in the appropriate table
+        if (strtolower($user) === 'manufacturer') {
+            $table = 'manufacturers';
+        } elseif (strtolower($user) === 'supplier') {
+            $table = 'suppliers';
         }
-    }
 
-    $stmt->close();
+        $emailCheckSql = "SELECT id FROM $table WHERE email = ?";
+        $stmt = $conn->prepare($emailCheckSql);
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $info = "<div class='alert alert-danger'>Email already exists.</div>";
+        } else {
+            // Insert the new user into the appropriate table
+            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            $stmt = $conn->prepare($insertSql);
+            $stmt->bind_param('sssssss', $company, $location, $email, $phone, $offers, $description, $password);
+            $userId = $conn->insert_id;
+
+            if ($stmt->execute()) {
+                $info = "<div class='alert alert-success'>Sign-up successful!</div>";
+                $_SESSION['userType'] = ucfirst($user); // Capitalize first letter
+                $_SESSION['email'] = $email;
+                $_SESSION['userId'] = $userId;
+                $_SESSION['companyName'] = $company;
+                header('location:select-materials.php');
+                // Redirect to a login or welcome page, or show a success message
+            } else {
+                $info = "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
+            }
+            $stmt->close();
+        }
+    } else {
+        $info = "<div class='alert alert-danger'>Password does not match.</div>";
+    }
 } elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $email = $_POST['loginEmail'];
     $password = $_POST['loginPassword'];
@@ -164,8 +177,30 @@ $conn->close();
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupOffers" class="form-label">What the company offers</label>
-                                    <input type="text" class="form-control" required id="signupOffers"
-                                        name="signupOffers" placeholder="Describe what the company offers">
+                                    <select class="form-control" required id="signupOffers" name="signupOffers">
+                                        <option value="">Select from list...</option>
+                                        <option value="Aluminum">Aluminum</option>
+                                        <option value="ALClad">ALClad</option>
+                                        <option value="Stainless Steel">Stainless Steel</option>
+                                        <option value="Steel">Steel</option>
+                                        <option value="Titanium">Titanium</option>
+                                        <option value="Carbon">Carbon</option>
+                                        <option value="Epoxy">Epoxy</option>
+                                        <option value="Fiberglass">Fiberglass</option>
+                                        <option value="Glass">Glass</option>
+                                        <option value="Phenolic">Phenolic</option>
+                                        <option value="Resin">Resin</option>
+                                        <option value="Plastic">Plastic</option>
+                                        <option value="Rubber/ Elastomer">Rubber/ Elastomer</option>
+                                        <option value="Milled part">Milled part</option>
+                                        <option value="Casting">Casting</option>
+                                        <option value="Weldment">Weldment</option>
+                                        <option value="3D Printing">3D Printing</option>
+                                        <option value="Machining">Machining</option>
+                                        <option value="Forging">Forging</option>
+                                        <option value="Molding">Molding</option>
+                                        <option value="Etc.">Etc.</option>
+                                    </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupDescription" class="form-label">Description</label>
@@ -177,6 +212,11 @@ $conn->close();
                                     <label for="signupPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" required id="signupPassword"
                                         name="signupPassword" placeholder="Enter your password">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" required id="signupConfirmPassword"
+                                        name="signupConfirmPassword" placeholder="Enter your password again">
                                 </div>
                                 <div class="d-grid">
                                     <button type="submit" name="signup" class="btn btn-success">Sign Up</button>
