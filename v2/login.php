@@ -1,14 +1,15 @@
 <?php
 include 'db_conn.php';
-if (isLoggedIn()) {
-    header("Location: select-materials.php");
-}
+// if (isLoggedIn()) {
+//     header("Location: select-materials.php");
+// }
+error_reporting(E_ALL);
 if (isset($_GET['user'])) {
     $user = $_GET['user'];
 } else {
     header("Location: index.php");
 }
-// print_r($_SESSION);
+print_r($_POST);
 $info = '';
 // Handle the sign-up form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
@@ -20,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
     $description = $_POST['signupDescription'];
     $password = $_POST['signupPassword'];
     $confirmPassword = $_POST['signupConfirmPassword'];
+    $enable_2fa = isset($_POST['enable_2FA']) ? 1 : 0;
 
     if ($password === $confirmPassword) {
 
@@ -46,9 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
             $otp = rand(100000, 999999); // Generate a 6-digit OTP
 
             // Insert the new user into the appropriate table with OTP
-            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, otp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, otp, enable_2fa, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
             $stmt = $conn->prepare($insertSql);
-            $stmt->bind_param('ssssssss', $company, $location, $email, $phone, $offers, $description, $password, $otp);
+            
+            $stmt->bind_param('ssssssssi', $company, $location, $email, $phone, $offers, $description, $password, $otp, $enable_2fa);
 
             if ($stmt->execute()) {
                 $userId = $conn->insert_id;
@@ -58,7 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                 $message = "Hello $company,\n\nYour OTP code is: $otp\nPlease use this code to verify your email.\n\nThanks!";
                 $headers = "From: no-reply@f4futuretech.com";
 
-                if (mail($email, $subject, $message, $headers)) {
+                $sent1 = mail($email, $subject, $message, $headers);
+                if ($sent1) {
                     // Email sent successfully to the user
                 } else {
                     $info = "<div class='alert alert-danger'>Failed to send OTP to the user's email.</div>";
@@ -71,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                 $adminMessage .= "Email: $email\n";
                 $adminMessage .= "Company: $company\n";
                 $adminMessage .= "User Type: " . ucfirst($user) . "\n";
-                mail('futuretest45@gmail.com', $adminSubject, $adminMessage, $headers);
+                // $sent2 = mail('futuretest45@gmail.com', $adminSubject, $adminMessage, $headers);
 
                 // Store user data in session and redirect to verify-user.php
                 $_SESSION['userType'] = ucfirst($user); // Capitalize first letter
@@ -119,6 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
         $_SESSION['userId'] = $userId;
         $_SESSION['companyName'] = $companyName;
         $_SESSION['userActive'] = $row['userActive'];
+        $_SESSION['enable_2fa'] = $row['enable_2fa'];
+        $_SESSION['2fa_passed'] = ($_SESSION['enable_2fa'] == 1) ? false : true;
 
         if ($_SESSION['userActive'] == true) {
             $info = "<div class='alert alert-success'>Login successful! Welcome, $companyName.</div>";
