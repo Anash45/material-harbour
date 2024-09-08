@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                 $adminMessage .= "Email: $email\n";
                 $adminMessage .= "Company: $company\n";
                 $adminMessage .= "User Type: " . ucfirst($user) . "\n";
-                // $sent2 = mail('futuretest45@gmail.com', $adminSubject, $adminMessage, $headers);
+                $sent2 = mail('futuretest45@gmail.com', $adminSubject, $adminMessage, $headers);
 
                 // Store user data in session and redirect to verify-user.php
                 $_SESSION['userType'] = ucfirst($user); // Capitalize first letter
