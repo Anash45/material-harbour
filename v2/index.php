@@ -41,16 +41,6 @@ if(isLoggedIn()){
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Guest</h5>
-                            <p class="card-text">Explore materials as a Guest.</p>
-                            <a href="./select-materials.php" class="btn btn-secondary">I am a Guest</a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
         <!-- jQuery and Bootstrap JS -->

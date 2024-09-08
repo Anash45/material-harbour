@@ -42,27 +42,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
         if ($stmt->num_rows > 0) {
             $info = "<div class='alert alert-danger'>Email already exists.</div>";
         } else {
-            // Insert the new user into the appropriate table
-            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            // Generate OTP code
+            $otp = rand(100000, 999999); // Generate a 6-digit OTP
+
+            // Insert the new user into the appropriate table with OTP
+            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, otp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
             $stmt = $conn->prepare($insertSql);
-            $stmt->bind_param('sssssss', $company, $location, $email, $phone, $offers, $description, $password);
-            $userId = $conn->insert_id;
+            $stmt->bind_param('ssssssss', $company, $location, $email, $phone, $offers, $description, $password, $otp);
 
             if ($stmt->execute()) {
-                $info = "<div class='alert alert-success'>Sign-up successful!</div>";
+                $userId = $conn->insert_id;
+
+                // Send OTP to the user's email
+                $subject = "Your OTP Code";
+                $message = "Hello $company,\n\nYour OTP code is: $otp\nPlease use this code to verify your email.\n\nThanks!";
+                $headers = "From: no-reply@f4futuretech.com";
+
+                if (mail($email, $subject, $message, $headers)) {
+                    // Email sent successfully to the user
+                } else {
+                    $info = "<div class='alert alert-danger'>Failed to send OTP to the user's email.</div>";
+                }
+
+                // Send an email to the admin about the new registration
+                $adminSubject = "New User Registration";
+                $adminMessage = "A new user has registered with the following details:\n\n";
+                $adminMessage .= "Name: $company\n";
+                $adminMessage .= "Email: $email\n";
+                $adminMessage .= "Company: $company\n";
+                $adminMessage .= "User Type: " . ucfirst($user) . "\n";
+                mail('futuretest45@gmail.com', $adminSubject, $adminMessage, $headers);
+
+                // Store user data in session and redirect to verify-user.php
                 $_SESSION['userType'] = ucfirst($user); // Capitalize first letter
                 $_SESSION['email'] = $email;
                 $_SESSION['userId'] = $userId;
                 $_SESSION['companyName'] = $company;
-                header('location:select-materials.php');
-                // Redirect to a login or welcome page, or show a success message
+                $_SESSION['userActive'] = false;
+
+                // Redirect to the verify-user.php page
+                header('Location: verify-email.php');
+                exit();
             } else {
                 $info = "<div class='alert alert-danger'>Error: " . $stmt->error . "</div>";
             }
             $stmt->close();
         }
     } else {
-        $info = "<div class='alert alert-danger'>Password does not match.</div>";
+        $info = "<div class='alert alert-danger'>Passwords do not match.</div>";
     }
 } elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $email = $_POST['loginEmail'];
@@ -91,10 +118,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
         $_SESSION['email'] = $email;
         $_SESSION['userId'] = $userId;
         $_SESSION['companyName'] = $companyName;
+        $_SESSION['userActive'] = $row['userActive'];
 
-        $info = "<div class='alert alert-success'>Login successful! Welcome, $companyName.</div>";
-        // Redirect to a dashboard or home page
-        header('location:select-materials.php');
+        if ($_SESSION['userActive'] == true) {
+            $info = "<div class='alert alert-success'>Login successful! Welcome, $companyName.</div>";
+            // Redirect to a dashboard or home page
+            header('location:select-materials.php');
+        } else {
+            $info = "<div class='alert alert-warning'>You need to verify your email first, redirecting in 3 seconds!</div>";
+            // Redirect to a dashboard or home page
+            header('location:verify-email.php');
+        }
+
     } else {
         $info = "<div class='alert alert-danger'>Invalid email or password.</div>";
     }
@@ -210,13 +245,26 @@ $conn->close();
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupPassword" class="form-label">Password</label>
-                                    <input type="password" class="form-control" required id="signupPassword"
-                                        name="signupPassword" placeholder="Enter your password">
+                                    <input type="password" class="form-control"
+                                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}"
+                                        required id="signupPassword" name="signupPassword"
+                                        placeholder="Enter your password">
+                                    <div class="invalid-feedback">Password should contain following: <br>Atleast 1
+                                        uppercase alphabet<br>Atleast 1 lowercase alphabet<br>Atleast 1 digit<br>Atleast
+                                        1 special character</div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
                                     <input type="password" class="form-control" required id="signupConfirmPassword"
                                         name="signupConfirmPassword" placeholder="Enter your password again">
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="1" id="enable_2FA"
+                                            name="enable_2FA">
+                                        <label class="form-check-label" for="enable_2FA"> Enable two factor
+                                            authentication on login? </label>
+                                    </div>
                                 </div>
                                 <div class="d-grid">
                                     <button type="submit" name="signup" class="btn btn-success">Sign Up</button>

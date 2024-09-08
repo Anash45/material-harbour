@@ -67,6 +67,7 @@ $conn->close();
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Material Harbour</title>
         <!-- Bootstrap CSS -->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" />
         <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
     </head>
 
@@ -74,7 +75,7 @@ $conn->close();
         <?php
         include './header.php';
         ?>
-        <div class="container mt-5">
+        <div class="container mt-5 mb-5">
             <?php echo $info; ?>
             <?php if (!empty($userData)): ?>
                 <div class="card">
@@ -100,30 +101,36 @@ $conn->close();
                 <div class="alert alert-danger">No profile data available.</div>
             <?php endif; ?>
             <?php if ($userType == 'supplier'): ?>
-                <h4 class="mt-5 text-center fw-bold">Materials Offered by <?php echo htmlspecialchars($userData['company_name']); ?></h4>
-                    <?php
-                    echo "<table class='table table-bordered'>";
-                    echo "<thead><tr><th>Material Standard</th><th>Material Type</th><th>Alloy</th><th>Type</th><th>Condition</th><th>Form</th></tr></thead>";
-                    echo "<tbody>";
-                    foreach ($materials as $material) {
-                        echo "<tr>";
-                        echo "<td>" . htmlspecialchars($material['material_standard']) . "</td>";
-                        echo "<td>" . htmlspecialchars($material['material_type']) . "</td>";
-                        echo "<td>" . htmlspecialchars($material['alloy']) . "</td>";
-                        echo "<td>" . htmlspecialchars($material['type']) . "</td>";
-                        echo "<td>" . htmlspecialchars($material['condition']) . "</td>";
-                        echo "<td>" . htmlspecialchars($material['form']) . "</td>";
-                        echo "</tr>";
-                    }
-                    echo "</tbody>";
-                    echo "</table>";
-                    ?>
-                <?php endif; ?>
+                <h4 class="mt-5 text-center fw-bold mb-4">Materials Offered by
+                    <?php echo htmlspecialchars($userData['company_name']); ?></h4>
+                <?php
+                echo "<table class='table table-bordered' id='dataTable'>";
+                echo "<thead><tr><th>Material Standard</th><th>Material Type</th><th>Alloy</th><th>Type</th><th>Condition</th><th>Form</th></tr></thead>";
+                echo "<tbody>";
+                foreach ($materials as $material) {
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($material['material_standard']) . "</td>";
+                    echo "<td>" . htmlspecialchars($material['material_type']) . "</td>";
+                    echo "<td>" . htmlspecialchars($material['alloy']) . "</td>";
+                    echo "<td>" . htmlspecialchars($material['type']) . "</td>";
+                    echo "<td>" . htmlspecialchars($material['condition']) . "</td>";
+                    echo "<td>" . htmlspecialchars($material['form']) . "</td>";
+                    echo "</tr>";
+                }
+                echo "</tbody>";
+                echo "</table>";
+                ?>
+            <?php endif; ?>
         </div>
         <!-- jQuery and Bootstrap JS -->
         <script src="./assets/js/jquery-3.6.1.min.js"></script>
+        <!-- DataTables CSS and JS CDN -->
+        <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
         <script src="./assets/js/bootstrap.bundle.min.js"></script>
         <script src="./assets/js/script.js"></script>
+        <script>
+            $('#dataTable').DataTable();
+        </script>
     </body>
 
 </html>

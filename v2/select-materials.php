@@ -4,6 +4,8 @@ require './db_conn.php';
 // if (!isLoggedIn()) {
 //   header('Location: ./index.php');
 // }
+
+// print_r($_POST);
 $show = $info = '';
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
@@ -12,14 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
   // Sanitize and retrieve input data
   $materialStandard = isset($_POST['material_standard']) ? trim($_POST['material_standard']) : '';
   $materialType = isset($_POST['material_type']) ? trim($_POST['material_type']) : '';
-  $alloy = isset($_POST['alloy']) ? trim($_POST['alloy']) : '';
-  if (isset($_POST['type'])) {
-    $type = trim($_POST['type']);
+  $alloy = (isset($_POST['alloy']) && !empty($_POST['alloy'])) ? trim($_POST['alloy'][0]) : '';
+  if (isset($_POST['type']) && !empty($_POST['type'])) {
+    $type = trim($_POST['type'][0]);
   } else {
     $type = '';
   }
-  $condition = isset($_POST['condition']) ? trim($_POST['condition']) : '';
-  $form = isset($_POST['form']) ? trim($_POST['form']) : '';
+  $condition = (isset($_POST['condition']) && !empty($_POST['condition'])) ? trim($_POST['condition'][0]) : '';
+  $form = (isset($_POST['form']) && !empty($_POST['form'])) ? trim($_POST['form'][0]) : '';
   $supplierId = isset($_SESSION['userId']) ? $_SESSION['userId'] : '';
 
   if (strtolower($userType) === 'manufacturer' || strtolower($userType) === 'guest') {
@@ -103,12 +105,12 @@ $conn->close();
         echo ' - To Supply';
       } elseif (isManufacturer()) {
         echo ' - To Manufacture';
-      }else{
+      } else {
         echo ' - as Guest';
       }
       ?></h2>
       <?php echo $info; ?>
-      <form action="" method="POST" novalidate class="needs-validation">
+      <form action="" method="POST" novalidate class="needs-validation mb-5">
         <div id="material-selection">
           <select id="material-select" required name="material_standard" class="form-control">
           </select>
