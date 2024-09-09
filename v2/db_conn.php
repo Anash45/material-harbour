@@ -7,10 +7,10 @@ $password = "S;64NoYxc";
 $dbname = "u956940883_materials";
 
 
-$servername = "localhost";
-$username = "root";
-$password = "root";
-$dbname = "material_harbour";
+// $servername = "localhost";
+// $username = "root";
+// $password = "root";
+// $dbname = "material_harbour";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
