@@ -7,10 +7,10 @@ $password = "S;64NoYxc";
 $dbname = "u956940883_materials";
 
 
-// $servername = "localhost";
-// $username = "root";
-// $password = "root";
-// $dbname = "material_harbour";
+$servername = "localhost";
+$username = "root";
+$password = "root";
+$dbname = "material_harbour";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -21,10 +21,14 @@ if ($conn->connect_error) {
 }
 
 function isLoggedIn() {
-    return isset($_SESSION['userType'], $_SESSION['userId'], $_SESSION['email'], $_SESSION['companyName']) && $_SESSION['userActive'];
+    return isset($_SESSION['userType'], $_SESSION['userId'], $_SESSION['email'], $_SESSION['companyName']) && $_SESSION['userActive'] && $_SESSION['2fa_passed'];
 }
-function isNotActive() {
-    return isset($_SESSION['userType'], $_SESSION['userId'], $_SESSION['email'], $_SESSION['companyName']) && !$_SESSION['userActive'];
+function isActive() {
+    return isset($_SESSION['userType'], $_SESSION['userId'], $_SESSION['email'], $_SESSION['companyName']) && ($_SESSION['userActive']);
+}
+
+function isPassed2fa() {
+    return isset($_SESSION['userType'], $_SESSION['userId'], $_SESSION['email'], $_SESSION['companyName']) && ($_SESSION['2fa_passed']);
 }
 
 

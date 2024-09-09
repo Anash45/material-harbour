@@ -2,11 +2,20 @@
 include 'db_conn.php';
 if (isLoggedIn()) {
     header("Location: select-materials.php");
-}elseif(!isset($_SESSION['userId'])){
+} elseif (!isset($_SESSION['userId'])) {
     header("Location: login.php");
 }
 
-
+$userType = $_SESSION['userType'];
+// Determine the correct table based on user type
+if (strtolower($userType) === 'manufacturer') {
+    $table = 'manufacturers';
+} elseif (strtolower($userType) === 'supplier') {
+    $table = 'suppliers';
+} else {
+    die('Invalid user type.');
+}
+// echo isPassed2fa();
 $info = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verifyOtp'])) {
     // Retrieve the OTP entered by the user
@@ -14,16 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verifyOtp'])) {
 
     // Retrieve session variables
     $userEmail = $_SESSION['email'];
-    $userType = $_SESSION['userType'];
 
-    // Determine the correct table based on user type
-    if (strtolower($userType) === 'manufacturer') {
-        $table = 'manufacturers';
-    } elseif (strtolower($userType) === 'supplier') {
-        $table = 'suppliers';
-    } else {
-        die('Invalid user type.');
-    }
 
     // Fetch the stored OTP from the appropriate table
     $sql = "SELECT otp, userActive FROM $table WHERE email = ?";
@@ -36,16 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verifyOtp'])) {
 
     // Check if OTP matches and if the user is not already active
     if ($stmt->num_rows > 0) {
-        if ($userActive) {
-            $info = "<div class='alert alert-info'>Your account is already verified.</div>";
-        } elseif ($storedOtp === $enteredOtp) {
+        if ($storedOtp === $enteredOtp) {
             // OTP is correct, activate the user
             $updateSql = "UPDATE $table SET userActive = 1, otp = NULL WHERE email = ?";
             $updateStmt = $conn->prepare($updateSql);
             $updateStmt->bind_param('s', $userEmail);
             if ($updateStmt->execute()) {
-                $_SESSION['userActive'] = true; // Update session to reflect the user is now active
-                $info = "<div class='alert alert-success'>Email verified successfully!</div>";
+                $_SESSION['2fa_passed'] = true;
+                $info = "<div class='alert alert-success'>2FA passed successfully!</div>";
                 header('Location: select-materials.php'); // Redirect to dashboard or any page
                 exit();
             } else {
@@ -59,9 +57,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verifyOtp'])) {
     }
 
     $stmt->close();
+} else {
+    $company = $_SESSION['companyName'];
+    $email = $_SESSION['email'];
+    $otp = rand(100000, 999999);
+
+    $updateSql = "UPDATE $table SET otp = ? WHERE email = ?";
+    $updateStmt = $conn->prepare($updateSql);
+    $updateStmt->bind_param('is', $otp, $email);
+    $updateStmt->execute();
+    // Send OTP to the user's email
+    $subject = "2FA OTP Code";
+    $message = "Hello $company,\n\nYour OTP code for 2FA is: $otp\nPlease use this code to verify your login.\n\nThanks!";
+    $headers = "From: no-reply@f4futuretech.com";
+
+    $sent1 = mail($email, $subject, $message, $headers);
+    // $sent1 = true;
+    if ($sent1) {
+        // Email sent successfully to the user
+    } else {
+        $info = "<div class='alert alert-danger'>Failed to send OTP to the user's email.</div>";
+    }
 }
 
-print_r($_SESSION);
+// print_r($_SESSION);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,13 +102,14 @@ print_r($_SESSION);
                         <!-- Login Form -->
                         <div class="card-body">
                             <h3 class="text-center">Email Verification</h3>
-                            <form method="POST" action="verify-email.php" novalidate class="needs-validation">
+                            <form method="POST" action="verify-2fa.php" novalidate class="needs-validation">
                                 <div class="mb-3">
                                     <label for="verifyCode" class="form-label">OTP Code</label>
                                     <input type="password" class="form-control" id="verifyCode" name="verifyCode"
                                         required placeholder="Enter your one time six digit passcode"
                                         pattern="[0-9]{6}">
-                                        <p class="text-muted"><small>Use the otp sent to your e-mail addess <b><?php echo $_SESSION['email']; ?></b></small></p>
+                                    <p class="text-muted"><small>Use the otp sent to your e-mail addess
+                                            <b><?php echo $_SESSION['email']; ?></b></small></p>
                                 </div>
                                 <div class="d-grid">
                                     <button type="submit" name="verifyOtp" class="btn btn-primary">Verify</button>

@@ -127,7 +127,7 @@ $conn->close();
         <!-- DataTables CSS and JS CDN -->
         <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
         <script src="./assets/js/bootstrap.bundle.min.js"></script>
-        <script src="./assets/js/script.js"></script>
+        <script src="./assets/js/script.js?v=1"></script>
         <script>
             $('#dataTable').DataTable();
         </script>

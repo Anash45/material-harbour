@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
             // Insert the new user into the appropriate table with OTP
             $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, otp, enable_2fa, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
             $stmt = $conn->prepare($insertSql);
-            
+
             $stmt->bind_param('ssssssssi', $company, $location, $email, $phone, $offers, $description, $password, $otp, $enable_2fa);
 
             if ($stmt->execute()) {
@@ -83,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                 $_SESSION['userId'] = $userId;
                 $_SESSION['companyName'] = $company;
                 $_SESSION['userActive'] = false;
+                $_SESSION['2fa_passed'] = true;
 
                 // Redirect to the verify-user.php page
                 header('Location: verify-email.php');
@@ -107,41 +108,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
         $table = 'suppliers';
     } else {
         $info = "<div class='alert alert-danger'>Invalid user type.</div>";
+        exit(); // Stop further execution if the user type is invalid
     }
 
-    $loginSql = "SELECT id, company_name, password FROM $table WHERE email = ?";
-    $stmt = $conn->prepare($loginSql);
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $stmt->bind_result($userId, $companyName, $hashedPassword);
-    $stmt->fetch();
+    // Prepare login SQL query
+    $loginSql = "SELECT id, company_name, password, userActive, enable_2fa FROM $table WHERE email = ?";
+    if ($stmt = $conn->prepare($loginSql)) {
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $stmt->bind_result($userId, $companyName, $hashedPassword, $userActive, $enable_2fa);
+        $result = $stmt->fetch();
+        $stmt->close();
 
-    if ($userId && password_verify($password, $hashedPassword)) {
-        // Login successful, store user information in session
-        $_SESSION['userType'] = ucfirst($user); // Capitalize first letter
-        $_SESSION['email'] = $email;
-        $_SESSION['userId'] = $userId;
-        $_SESSION['companyName'] = $companyName;
-        $_SESSION['userActive'] = $row['userActive'];
-        $_SESSION['enable_2fa'] = $row['enable_2fa'];
-        $_SESSION['2fa_passed'] = ($_SESSION['enable_2fa'] == 1) ? false : true;
+        if ($result && password_verify($password, $hashedPassword)) {
+            // Login successful, store user information in session
+            $_SESSION['userType'] = ucfirst($user); // Capitalize first letter
+            $_SESSION['email'] = $email;
+            $_SESSION['userId'] = $userId;
+            $_SESSION['companyName'] = $companyName;
+            $_SESSION['userActive'] = $userActive;
+            $_SESSION['enable_2fa'] = $enable_2fa;
+            $_SESSION['2fa_passed'] = ($_SESSION['enable_2fa'] == 1) ? false : true;
 
-        if ($_SESSION['userActive'] == true) {
-            $info = "<div class='alert alert-success'>Login successful! Welcome, $companyName.</div>";
-            // Redirect to a dashboard or home page
-            header('location:select-materials.php');
+            if ($_SESSION['userActive'] == true) {
+                $info = "<div class='alert alert-success'>Login successful! Welcome, $companyName.</div>";
+
+                // Redirect based on 2FA
+                if ($_SESSION['enable_2fa'] == true && !$_SESSION['2fa_passed']) {
+                    header('location:verify-2fa.php'); // Redirect to 2FA verification
+                } else {
+                    header('location:select-materials.php'); // Redirect to dashboard
+                }
+                exit();
+            } else {
+                // User is inactive, generate and send OTP
+                $otp = rand(100000, 999999); // Generate a 6-digit OTP
+                $updateSql = "UPDATE $table SET otp = ? WHERE email = ?";
+                $updateStmt = $conn->prepare($updateSql);
+
+                if ($updateStmt) {
+                    $updateStmt->bind_param('is', $otp, $email);
+                    $updateStmt->execute(); // Make sure to execute the update query
+                    $updateStmt->close();
+                    
+                    // Send OTP to the user's email
+                    $subject = "Your OTP Code";
+                    $message = "Hello $companyName,\n\nYour OTP code is: $otp\nPlease use this code to verify your email.\n\nThanks!";
+                    $headers = "From: no-reply@f4futuretech.com";
+
+                    if (mail($email, $subject, $message, $headers)) {
+                        $info = "<div class='alert alert-success'>OTP sent to your email. Please verify.</div>";
+                    } else {
+                        $info = "<div class='alert alert-danger'>Failed to send OTP. Please try again later.</div>";
+                    }
+
+                    header('location:verify-email.php'); // Redirect to OTP verification page
+                    exit();
+                } else {
+                    $info = "<div class='alert alert-danger'>Failed to generate OTP. Please try again.</div>";
+                }
+            }
         } else {
-            $info = "<div class='alert alert-warning'>You need to verify your email first, redirecting in 3 seconds!</div>";
-            // Redirect to a dashboard or home page
-            header('location:verify-email.php');
+            $info = "<div class='alert alert-danger'>Invalid email or password.</div>";
         }
-
     } else {
-        $info = "<div class='alert alert-danger'>Invalid email or password.</div>";
+        $info = "<div class='alert alert-danger'>Failed to prepare login query.</div>";
     }
-
-    $stmt->close();
 }
+
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -284,7 +318,7 @@ $conn->close();
         <!-- jQuery and Bootstrap JS -->
         <script src="./assets/js/jquery-3.6.1.min.js"></script>
         <script src="./assets/js/bootstrap.bundle.min.js"></script>
-        <script src="./assets/js/script.js"></script>
+        <script src="./assets/js/script.js?v=1"></script>
     </body>
 
 </html>
