@@ -9,7 +9,7 @@ if (isset($_GET['user'])) {
 } else {
     header("Location: index.php");
 }
-print_r($_POST);
+// print_r($_POST);
 $info = '';
 // Handle the sign-up form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
