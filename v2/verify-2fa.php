@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verifyOtp'])) {
         <!-- jQuery and Bootstrap JS -->
         <script src="./assets/js/jquery-3.6.1.min.js"></script>
         <script src="./assets/js/bootstrap.bundle.min.js"></script>
-        <script src="./assets/js/script.js?v=1"></script>
+        <script src="./assets/js/script.js?v=2"></script>
     </body>
 
 </html>

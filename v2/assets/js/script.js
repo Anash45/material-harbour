@@ -71,13 +71,13 @@ $(document).ready(function () {
               // Clear only sub-node selects, keep sub-material select
               clearSubNodeSelects();
 
-              let subSelectionDivs = $('<div>', {class: 'subSelectionDivs'});
-              let subSelectionDiv = $('<div>', {class: 'subSelectionDiv'});
+              let subSelectionDivs = $('<div>', { class: 'subSelectionDivs' });
+              let subSelectionDiv = $('<div>', { class: 'subSelectionDiv' });
               $('#material-selection').append(``);
               // Create selects for each sub-node and populate with options
               $.each(subNodeOptions, function (node, nodeOptions) {
                 let node_lw = node.toLowerCase();
-                var nodeSelect = $('<select>', { id: node_lw, name: node_lw+'[]', class: 'form-control mt-3 sub-node-select', required: 'required'});
+                var nodeSelect = $('<select>', { id: node_lw, name: node_lw + '[]', class: 'form-control mt-3 sub-node-select', required: 'required' });
                 nodeSelect.append($('<option>', { value: '', text: 'Select ' + node }));
 
                 $.each(nodeOptions, function (index, option) {
@@ -90,12 +90,21 @@ $(document).ready(function () {
                 subSelectionDiv.append(nodeSelect);
                 // checkSubSelections();
               });
-              let buttonsDiv = $('<div>', {class: 'd-flex justify-content-between py-3 align-items-center border-bottom'});
-              buttonsDiv.html(`<button class="btn btn-danger" onclick="removeSubSelection(event)" type="button">Remove</button><button class="btn btn-primary" onclick="addSubSelection(event)" type="button">Add</button>`);
-              subSelectionDiv.append(buttonsDiv);
-              subSelectionDivs.append(subSelectionDiv);
-              // Append new sub-node select
-              $('#material-selection').append(subSelectionDivs);
+              if (page == 'select-materials') {
+                let buttonsDiv = $('<div>', { class: 'd-flex justify-content-between py-3 align-items-center border-bottom' });
+                buttonsDiv.html(`<button class="btn btn-danger" onclick="removeSubSelection(event)" type="button">Remove</button><button class="btn btn-primary" onclick="addSubSelection(event)" type="button">Add</button>`);
+                subSelectionDiv.append(buttonsDiv);
+                subSelectionDivs.append(subSelectionDiv);
+                // Append new sub-node select
+                $('#material-selection').append(subSelectionDivs);
+              }else{
+                let buttonsDiv = $('<div>', { class: 'd-flex justify-content-between py-3 align-items-center border-bottom' });
+                buttonsDiv.html(``);
+                subSelectionDiv.append(buttonsDiv);
+                subSelectionDivs.append(subSelectionDiv);
+                // Append new sub-node select
+                $('#material-selection').append(subSelectionDivs);
+              }
             } else {
               // No sub-nodes, clear any existing sub-node selects
               clearSubNodeSelects();
@@ -140,20 +149,20 @@ function checkFormValidity() {
 
 function addSubSelection(e) {
   let target = e.target;
-  
+
   // Find the closest '.subSelectionDiv' element
   let elementToCopy = $(target).closest('.subSelectionDiv');
-  
+
   // Clone the element
   let clonedElement = elementToCopy.clone();
-  
+
   // Append the cloned element to the '.subSelectionDivs' container
   $('.subSelectionDivs').append(clonedElement);
 }
 
 function removeSubSelection(e) {
   let target = e.target;
-  if($('.subSelectionDiv').length > 1){
+  if ($('.subSelectionDiv').length > 1) {
     // Find the closest '.subSelectionDiv' element
     let elementToDelete = $(target).closest('.subSelectionDiv');
     elementToDelete.remove();

@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
     $email = $_POST['signupEmail'];
     $phone = $_POST['signupPhone'];
     $offers = $_POST['signupOffers'];
+    $certification = $_POST['signupCertification'];
     $description = $_POST['signupDescription'];
     $password = $_POST['signupPassword'];
     $confirmPassword = $_POST['signupConfirmPassword'];
@@ -48,10 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
             $otp = rand(100000, 999999); // Generate a 6-digit OTP
 
             // Insert the new user into the appropriate table with OTP
-            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, password, otp, enable_2fa, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            $insertSql = "INSERT INTO $table (company_name, location, email, contact_phone, offers, description, certification, password, otp, enable_2fa, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
             $stmt = $conn->prepare($insertSql);
 
-            $stmt->bind_param('ssssssssi', $company, $location, $email, $phone, $offers, $description, $password, $otp, $enable_2fa);
+            $stmt->bind_param('sssssssssi', $company, $location, $email, $phone, $offers, $description, $certification, $password, $otp, $enable_2fa);
 
             if ($stmt->execute()) {
                 $userId = $conn->insert_id;
@@ -150,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])) {
                     $updateStmt->bind_param('is', $otp, $email);
                     $updateStmt->execute(); // Make sure to execute the update query
                     $updateStmt->close();
-                    
+
                     // Send OTP to the user's email
                     $subject = "Your OTP Code";
                     $message = "Hello $companyName,\n\nYour OTP code is: $otp\nPlease use this code to verify your email.\n\nThanks!";
@@ -252,7 +253,8 @@ $conn->close();
                                 </div>
                                 <div class="mb-3">
                                     <label for="signupOffers" class="form-label">What the company offers</label>
-                                    <select class="form-control" required id="signupOffers" name="signupOffers">
+                                    <select class="form-control form-select" required id="signupOffers"
+                                        name="signupOffers">
                                         <option value="">Select from list...</option>
                                         <option value="Aluminum">Aluminum</option>
                                         <option value="ALClad">ALClad</option>
@@ -275,6 +277,16 @@ $conn->close();
                                         <option value="Forging">Forging</option>
                                         <option value="Molding">Molding</option>
                                         <option value="Etc.">Etc.</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupCertification" class="form-label">Certification</label>
+                                    <select class="form-control form-select" required id="signupCertification"
+                                        name="signupCertification">
+                                        <option value="">Select from list...</option>
+                                        <option value="Option 1">Option 1</option>
+                                        <option value="Option 2">Option 2</option>
+                                        <option value="Option 3">Option 3</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
@@ -318,7 +330,7 @@ $conn->close();
         <!-- jQuery and Bootstrap JS -->
         <script src="./assets/js/jquery-3.6.1.min.js"></script>
         <script src="./assets/js/bootstrap.bundle.min.js"></script>
-        <script src="./assets/js/script.js?v=1"></script>
+        <script src="./assets/js/script.js?v=2"></script>
     </body>
 
 </html>
